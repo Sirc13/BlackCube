@@ -666,7 +666,8 @@
 <script>
     const asset = name => `img/assets/${name}.png`;
     const SAVE_KEY = "theLabSaveV2";
-    const LEADERBOARD_KEY = "theLabLeaderboardV1";
+    const LEADERBOARD_API = "https://script.google.com/macros/s/AKfycby-k7WA73CBgyFCxiEE83WvgaygKxgkDCmETXcrn6E_ofWhCpSgHHjcBZl2oGEFOnTCxw/exec";
+
     let messageTimer = null;
     let fadeTimer = null;
 
@@ -1472,25 +1473,25 @@
                 break;
 
             case "map-lab":
-                if(state.flags.stakan && state.flags.stak && state.flags.kruska && state.flags.cofein){
+                if (state.flags.stakan && state.flags.stak && state.flags.kruska && state.flags.cofein) {
                     go("lab6");
-                }else if(!state.flags.stakan && state.flags.stak && !state.flags.kruska && state.flags.cofein){
+                } else if (!state.flags.stakan && state.flags.stak && !state.flags.kruska && state.flags.cofein) {
                     go("lab11");
-                }else if(!state.flags.stakan && !state.flags.stak && !state.flags.kruska && state.flags.cofein){
+                } else if (!state.flags.stakan && !state.flags.stak && !state.flags.kruska && state.flags.cofein) {
                     go("lab1");
-                }else if(!state.flags.stakan && state.flags.stak && state.flags.kruska && !state.flags.cofein){
+                } else if (!state.flags.stakan && state.flags.stak && state.flags.kruska && !state.flags.cofein) {
                     go("lab21");
-                }else if(!state.flags.stakan && !state.flags.stak && state.flags.kruska && !state.flags.cofein){
+                } else if (!state.flags.stakan && !state.flags.stak && state.flags.kruska && !state.flags.cofein) {
                     go("lab2");
-                }else if(!state.flags.stakan && !state.flags.stak && state.flags.kruska && state.flags.cofein){
+                } else if (!state.flags.stakan && !state.flags.stak && state.flags.kruska && state.flags.cofein) {
                     go("lab3");
-                }else if(!state.flags.stakan && state.flags.stak && !state.flags.kruska && !state.flags.cofein){
+                } else if (!state.flags.stakan && state.flags.stak && !state.flags.kruska && !state.flags.cofein) {
                     go("lab4");
-                }else if(!state.flags.stakan && state.flags.stak && state.flags.kruska && state.flags.cofein){
+                } else if (!state.flags.stakan && state.flags.stak && state.flags.kruska && state.flags.cofein) {
                     go("lab5");
-                }else if(state.flags.stakan && state.flags.stak && state.flags.kruska && state.flags.cofein){
+                } else if (state.flags.stakan && state.flags.stak && state.flags.kruska && state.flags.cofein) {
                     go("lab6");
-                }else{
+                } else {
                     go("lab");
                 }
                 break;
@@ -1678,13 +1679,13 @@
                     state.flags.kruska = true;
                     give("Кофейная кружка");
                     say("Ты забираешь кофейную кружку со стола.");
-                    if (state.flags.cofein && state.flags.stak){
+                    if (state.flags.cofein && state.flags.stak) {
                         go("lab5")
-                    }else if(!state.flags.cofein && state.flags.stak){
+                    } else if (!state.flags.cofein && state.flags.stak) {
                         go("lab21")
-                    }else if(state.flags.cofein && !state.flags.stak){
+                    } else if (state.flags.cofein && !state.flags.stak) {
                         go("lab3")
-                    }else {
+                    } else {
                         go("lab2")
                     }
                 } else say("Кружка уже у тебя.");
@@ -1697,11 +1698,11 @@
                     say("Ты забираешь кофейник со стола.");
                     if (state.flags.stak && state.flags.kruska) {
                         go("lab5")
-                    }else if (state.flags.stak && !state.flags.kruska){
+                    } else if (state.flags.stak && !state.flags.kruska) {
                         go("lab11")
-                    }else if (!state.flags.stak && state.flags.kruska){
+                    } else if (!state.flags.stak && state.flags.kruska) {
                         go("lab3")
-                    }else {
+                    } else {
                         go("lab1")
                     }
                 } else say("Кофейник уже у тебя.");
@@ -1712,13 +1713,13 @@
                     state.flags.stak = true;
                     say("На полке стоят лабораторные колбы.");
                     give("Лабораторный стакан")
-                    if(state.flags.cofein && state.flags.kruska){
+                    if (state.flags.cofein && state.flags.kruska) {
                         go("lab5")
-                    }else if(!state.flags.cofein && state.flags.kruska){
+                    } else if (!state.flags.cofein && state.flags.kruska) {
                         go("lab21")
-                    }else if(state.flags.cofein && !state.flags.kruska){
+                    } else if (state.flags.cofein && !state.flags.kruska) {
                         go("lab11")
-                    }else {
+                    } else {
                         go("lab4")
                     }
                 } else say("Стакан уже у тебя.");
@@ -2178,42 +2179,37 @@
         }
     }
 
-    function loadLeaderboard() {
+    // ⬇⬇⬇ ТАБЛИЦА ЛИДЕРОВ ЧЕРЕЗ GOOGLE APPS SCRIPT
+
+    async function loadLeaderboard() {
         try {
-            const raw = localStorage.getItem(LEADERBOARD_KEY);
-            const arr = raw ? JSON.parse(raw) : [];
+            const res = await fetch(LEADERBOARD_API, {cache: "no-store"});
+            if (!res.ok) throw new Error("bad status " + res.status);
+            const arr = await res.json();
             return Array.isArray(arr) ? arr : [];
-        } catch {
-            return [];
+        } catch (e) {
+            console.error("Не удалось загрузить таблицу лидеров:", e);
+            return null; // null = ошибка сети/сервера
         }
     }
 
-    function saveLeaderboard(list) {
-        localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(list));
+    async function addLeaderboardEntry(name, ms) {
+        // Apps Script требует text/plain чтобы не было CORS-preflight
+        const res = await fetch(LEADERBOARD_API, {
+            method: "POST",
+            headers: {"Content-Type": "text/plain;charset=utf-8"},
+            body: JSON.stringify({name: String(name).slice(0, 24), ms: Math.floor(ms)})
+        });
+        if (!res.ok) throw new Error("save failed: " + res.status);
+        const data = await res.json();
+        if (!data.ok) throw new Error("server rejected");
     }
 
-    function addLeaderboardEntry(name, ms) {
-        const list = loadLeaderboard();
-        list.push({name: String(name).slice(0, 24) || "Безымянный", ms, date: new Date().toISOString()});
-        list.sort((a, b) => a.ms - b.ms);
-        saveLeaderboard(list);
-        return list;
-    }
-
-    function autoDownloadLeaderboard() {
-        const data = JSON.stringify(loadLeaderboard(), null, 2);
-        const blob = new Blob([data], {type: "application/json"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "leaderboard.json";
-        a.click();
-        URL.revokeObjectURL(url);
-    }
-
-    function showLeaderboard(mode, options = {}) {
+    async function showLeaderboard(mode, options = {}) {
         const {finalMs = null, onRestart = null} = options;
-        let list = loadLeaderboard();
+        let list = await loadLeaderboard();
+        const networkError = list === null;
+        if (networkError) list = [];
 
         document.getElementById("modalCard").classList.remove("gm-card");
         document.getElementById("modalTitle").textContent = "Таблица лидеров";
@@ -2222,7 +2218,9 @@
         body.innerHTML = "";
 
         const info = document.createElement("p");
-        if (mode === "finish" && finalMs !== null) {
+        if (networkError) {
+            info.textContent = "Не удалось связаться с сервером. Проверьте подключение к интернету.";
+        } else if (mode === "finish" && finalMs !== null) {
             const best = list.length ? list[0].ms : null;
             info.textContent =
                 `Твоё время: ${formatTime(finalMs)}\n` +
@@ -2232,7 +2230,6 @@
             info.textContent = `Записей: ${list.length}`;
         }
         body.appendChild(info);
-
 
         const wrap = document.createElement("div");
         wrap.className = "leaderboard";
@@ -2251,7 +2248,9 @@
                 const td = document.createElement("td");
                 td.colSpan = 3;
                 td.className = "empty";
-                td.textContent = "Пока никто не финишировал.";
+                td.textContent = networkError
+                    ? "Нет связи с сервером."
+                    : "Пока никто не финишировал.";
                 tr.appendChild(td);
                 tbody.appendChild(tr);
                 return;
@@ -2281,19 +2280,25 @@
             nameInput.autocomplete = "off";
             body.insertBefore(nameInput, wrap);
 
-            const saveEntry = () => {
+            const saveEntry = async () => {
                 if (nameInput.disabled) return;
                 const name = nameInput.value.trim();
                 if (!name) {
                     nameInput.focus();
                     return;
                 }
-                addLeaderboardEntry(name, finalMs);
-                list = loadLeaderboard();
-                renderRows();
                 nameInput.disabled = true;
-                autoDownloadLeaderboard();
-                wrap.scrollTop = wrap.scrollHeight;
+                try {
+                    await addLeaderboardEntry(name, finalMs);
+                    const fresh = await loadLeaderboard();
+                    if (fresh !== null) list = fresh;
+                    renderRows();
+                    wrap.scrollTop = wrap.scrollHeight;
+                } catch (e) {
+                    console.error(e);
+                    nameInput.disabled = false;
+                    alert("Не удалось сохранить результат. Проверьте подключение к интернету.");
+                }
             };
 
             nameInput.addEventListener("keydown", e => {
@@ -2328,66 +2333,13 @@
             return;
         }
 
-        const downloadBtn = document.createElement("button");
-        downloadBtn.textContent = "Скачать таблицу";
-        downloadBtn.onclick = exportLeaderboard;
-        actions.appendChild(downloadBtn);
-
-        const uploadBtn = document.createElement("button");
-        uploadBtn.textContent = "Загрузить таблицу";
-        uploadBtn.onclick = () => {
-            importLeaderboard();
-            setTimeout(() => {
-                list = loadLeaderboard();
-                renderRows();
-            }, 800);
-        };
-        actions.appendChild(uploadBtn);
-
+        // Режим просмотра
         const close = document.createElement("button");
         close.textContent = "Закрыть";
         close.onclick = closeModal;
         actions.appendChild(close);
 
         document.getElementById("modal").hidden = false;
-    }
-
-    function exportLeaderboard() {
-        const data = JSON.stringify(loadLeaderboard(), null, 2);
-        const blob = new Blob([data], {type: "application/json"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "leaderboard.json";
-        a.click();
-        URL.revokeObjectURL(url);
-    }
-
-    function importLeaderboard() {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = ".json,application/json";
-        input.onchange = () => {
-            const file = input.files && input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = () => {
-                try {
-                    const parsed = JSON.parse(reader.result);
-                    if (!Array.isArray(parsed)) throw new Error("bad format");
-                    const clean = parsed
-                        .filter(e => e && typeof e.name === "string" && Number.isFinite(e.ms))
-                        .map(e => ({name: e.name.slice(0, 24), ms: e.ms, date: e.date || null}));
-                    clean.sort((a, b) => a.ms - b.ms);
-                    saveLeaderboard(clean);
-                    alert("Таблица загружена. Открой её заново, чтобы увидеть.");
-                } catch {
-                    alert("Не удалось прочитать файл.");
-                }
-            };
-            reader.readAsText(file);
-        };
-        input.click();
     }
 
     function restartGame() {
