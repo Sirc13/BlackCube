@@ -1,0 +1,2542 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Rusty Lake Untold: The Lake</title>
+    <link rel="icon" type="image/png" href="img/assets/icon.png">
+
+    <style>
+        :root {
+            --paper: #e8e3d8;
+            --accent: #c7ba91;
+            --line: #6d6656;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--paper);
+            background: radial-gradient(ellipse at 50% 5%, #424036 0, #22221e 48%, #111210 100%);
+            font: 16px/1.45 Georgia, "Times New Roman", serif;
+        }
+
+        button, input {
+            font: inherit;
+        }
+
+        button {
+            color: var(--paper);
+            border: 1px solid var(--line);
+            background: #2b2922;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+
+        .start-screen {
+            position: fixed;
+            z-index: 100;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            overflow: auto;
+            background: radial-gradient(ellipse at 50% 40%, #414036 0, #1b1b18 55%, #090a09 100%);
+        }
+
+        .start-screen[hidden] {
+            display: none;
+        }
+
+        .start-content {
+            width: min(700px, 100%);
+            text-align: center;
+            animation: startAppear .9s ease both;
+        }
+
+        .start-mark {
+            width: clamp(110px, 22vw, 190px);
+            height: auto;
+            margin-bottom: 24px;
+            opacity: .9;
+            filter: drop-shadow(0 12px 24px #0009);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .start-title {
+            margin: 0;
+            color: #e7e0cc;
+            font-size: clamp(30px, 7vw, 66px);
+            font-weight: normal;
+            letter-spacing: .08em;
+            line-height: 1.12;
+            text-shadow: 0 4px 20px #000;
+        }
+
+        .start-subtitle {
+            margin: 14px 0 34px;
+            color: #b5aa8c;
+            font-size: clamp(13px, 2.6vw, 18px);
+            letter-spacing: .25em;
+            text-transform: uppercase;
+        }
+
+        .start-actions {
+            display: grid;
+            justify-items: center;
+            gap: 12px;
+        }
+
+        .start-button {
+            min-width: 220px;
+            padding: 12px 28px;
+            border-color: #b8aa80;
+            background: #39362b;
+            color: #f1ead7;
+            font-size: 18px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            transition: background .2s, transform .2s;
+        }
+
+        .start-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            background: #514a38;
+        }
+
+        .start-button.settings {
+            min-width: 180px;
+            padding: 9px 22px;
+            font-size: 14px;
+        }
+
+        .start-version {
+            margin-top: 38px;
+            color: #777366;
+            font-size: 12px;
+            letter-spacing: .12em;
+        }
+
+        @keyframes startAppear {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .rotate-screen {
+            position: fixed;
+            z-index: 1000;
+            inset: 0;
+            display: none;
+            place-items: center;
+            padding: 24px;
+            color: #f4efdf;
+            background: radial-gradient(ellipse at 50% 40%, #35342e 0, #151613 62%, #080908 100%);
+            text-align: center;
+        }
+
+        .rotate-screen.visible {
+            display: grid;
+        }
+
+        .rotate-content {
+            width: min(420px, 100%);
+            animation: startAppear .5s ease both;
+        }
+
+        .rotate-illustration {
+            display: block;
+            width: min(230px, 62vw);
+            height: auto;
+            margin: 0 auto 26px;
+            filter: drop-shadow(0 12px 22px #0009);
+        }
+
+        .rotate-title {
+            margin: 0;
+            color: #e9e2cf;
+            font-size: clamp(23px, 6vw, 34px);
+            font-weight: normal;
+            letter-spacing: .04em;
+        }
+
+        .rotate-caption {
+            margin: 12px 0 0;
+            color: #b5aa8c;
+            font-size: 15px;
+        }
+
+        .game {
+            width: min(1450px, 100%);
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .game[hidden] {
+            display: none;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--accent);
+            font-size: clamp(21px, 3vw, 32px);
+            font-weight: normal;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+        }
+
+        .top-actions, .room-actions, .modal-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .top-actions button, .room-actions button, .modal-actions button {
+            padding: 8px 11px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 290px;
+            gap: 12px;
+            align-items: start;
+        }
+
+        .scene-wrap {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 2384 / 1380;
+            overflow: hidden;
+            border: 1px solid #77715f;
+            background: #10100e;
+            box-shadow: 0 12px 40px #0009;
+        }
+
+        .scene-wrap > img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        #hotspots {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .hotspot {
+            position: absolute;
+            display: block;
+            padding: 0;
+            border: 1px solid transparent;
+            background: transparent;
+            pointer-events: auto;
+        }
+
+        .hotspot:hover, .hotspot:focus-visible {
+            border-color: #e5d6a3bb;
+            background: #e5d6a318;
+            outline: none;
+        }
+
+        #gameMessage {
+            position: absolute;
+            z-index: 5;
+            top: 2%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(92%, 760px);
+            padding: 9px 14px;
+            color: #fff;
+            background: #000;
+            border: 1px solid #777;
+            text-align: center;
+            line-height: 1.4;
+            white-space: pre-line;
+            pointer-events: none;
+            opacity: 1;
+        }
+
+        #gameMessage:empty {
+            display: none;
+        }
+
+        #gameMessage.fade-out {
+            animation: messageFade .6s ease forwards;
+        }
+
+        @keyframes messageFade {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        .darkness {
+            position: absolute;
+            z-index: 2;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            background: radial-gradient(
+                    ellipse at 50% 48%,
+                    transparent 0,
+                    #09090745 45%,
+                    #050504bb 100%
+            );
+            transition: opacity 1s ease;
+        }
+
+        .darkness.on {
+            opacity: .200;
+            animation: uneasy-flicker 3s infinite;
+        }
+
+        .darkness.flicker {
+            animation: light-flicker .9s ease-in-out 1;
+        }
+
+        @keyframes uneasy-flicker {
+            0%, 91%, 100% {
+                opacity: .100;
+            }
+            92% {
+                opacity: .500;
+            }
+            94% {
+                opacity: .500;
+            }
+            96% {
+                opacity: .500;
+            }
+            98% {
+                opacity: .150;
+            }
+        }
+
+        @keyframes light-flicker {
+            0%, 100% {
+                opacity: .66;
+            }
+            20% {
+                opacity: .2;
+            }
+            35% {
+                opacity: .78;
+            }
+            53% {
+                opacity: .32;
+            }
+            70% {
+                opacity: .72;
+            }
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .panel {
+            padding: 12px 14px;
+            border: 1px solid var(--line);
+            background: #1c1b17e8;
+        }
+
+        .panel h2 {
+            margin: 0 0 8px;
+            color: var(--accent);
+            font-size: 14px;
+            font-weight: normal;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+        }
+
+        #inventory {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .item {
+            width: 100%;
+            padding: 7px 9px;
+            text-align: left;
+            font-size: 14px;
+            border: 1px solid #766c52;
+            background: #302d24;
+        }
+
+        .item.selected {
+            outline: 2px solid var(--accent);
+            background: #514a38;
+        }
+
+        .room-actions {
+            justify-content: flex-start;
+            margin-top: 10px;
+        }
+
+        .modal {
+            position: fixed;
+            z-index: 10;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            padding: 18px;
+            background: #000b;
+        }
+
+        .modal[hidden] {
+            display: none;
+        }
+
+        .modal-card {
+            width: min(560px, 100%);
+            max-height: 90vh;
+            overflow: auto;
+            padding: 20px;
+            border: 1px solid var(--accent);
+            background: #211f1a;
+            box-shadow: 0 18px 60px #000c;
+        }
+
+        .modal-card h2 {
+            margin: 0 0 10px;
+            color: var(--accent);
+            font-weight: normal;
+        }
+
+        .modal-card p {
+            white-space: pre-line;
+        }
+
+        .modal-card img {
+            display: block;
+            width: 100%;
+            max-height: 60vh;
+            margin: 12px 0;
+            object-fit: contain;
+            background: #111;
+        }
+
+        .modal-card input {
+            width: 100%;
+            padding: 10px;
+            color: var(--paper);
+            border: 1px solid #82785e;
+            background: #12120f;
+            letter-spacing: .08em;
+        }
+
+        .gm-label {
+            color: #a79d82;
+            font-size: 12px;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+        }
+
+        .gm-text {
+            color: #e6dfcd;
+            font-size: clamp(18px, 2.4vw, 23px);
+            font-style: italic;
+            line-height: 1.6;
+        }
+
+
+        #timer {
+            position: fixed;
+            z-index: 20;
+            top: 12px;
+            right: 12px;
+            padding: 6px 12px;
+            color: var(--accent);
+            background: #1c1b17e8;
+            border: 1px solid var(--line);
+            font: 14px/1.2 monospace;
+            letter-spacing: .08em;
+            pointer-events: none;
+        }
+
+        #timer[hidden] {
+            display: none;
+        }
+
+
+        .leaderboard {
+            width: 100%;
+            max-height: 46vh;
+            overflow-y: auto;
+            margin: 10px 0;
+            border: 1px solid #6d6656;
+        }
+
+        .leaderboard table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .leaderboard th, .leaderboard td {
+            padding: 6px 10px;
+            text-align: left;
+            border-bottom: 1px solid #3a372e;
+        }
+
+        .leaderboard th {
+            position: sticky;
+            top: 0;
+            background: #2b2922;
+            color: var(--accent);
+            font-weight: normal;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+
+        .leaderboard tr:nth-child(2) td {
+            color: #e7d27a;
+        }
+
+        .leaderboard tr:nth-child(3) td {
+            color: #cfcfcf;
+        }
+
+        .leaderboard tr:nth-child(4) td {
+            color: #c79a6b;
+        }
+
+        .leaderboard .empty {
+            padding: 12px;
+            text-align: center;
+            color: #8a8272;
+            font-style: italic;
+        }
+
+        .leaderboard-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 850px) {
+            .layout {
+                grid-template-columns: minmax(0, 1fr) 230px;
+            }
+        }
+
+        @media (max-width: 650px) {
+            .game {
+                padding: 9px;
+            }
+
+            header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .scene-wrap {
+                min-height: 230px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<!-- НОВОЕ: таймер -->
+<div id="timer" hidden>00:00:00</div>
+
+<section class="start-screen" id="startScreen">
+    <div class="start-content">
+        <img class="start-mark" id="startMark" src="img/assets/icon.png" alt="">
+
+        <h1 class="start-title">Rusty Lake<br>Untold: The Lake</h1>
+        <p class="start-subtitle">Воспоминания ждут</p>
+
+        <div class="start-actions">
+            <button class="start-button" id="playBtn">Играть</button>
+        </div>
+    </div>
+</section>
+
+<section class="rotate-screen" id="rotateScreen" aria-live="assertive">
+    <div class="rotate-content">
+        <svg class="rotate-illustration" viewBox="0 0 260 220" role="img" aria-label="Иллюстрация поворота устройства">
+            <defs>
+                <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="5"/>
+                    <feOffset dy="5"/>
+                    <feComponentTransfer>
+                        <feFuncA type="linear" slope=".35"/>
+                    </feComponentTransfer>
+                    <feMerge>
+                        <feMergeNode/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+            </defs>
+            <path d="M58 66 A84 84 0 0 1 191 45" fill="none" stroke="#b8aa80" stroke-width="5" stroke-linecap="round"/>
+            <path d="M186 30 L204 43 L182 51" fill="none" stroke="#b8aa80" stroke-width="5" stroke-linecap="round"
+                  stroke-linejoin="round"/>
+            <path d="M202 154 A84 84 0 0 1 69 175" fill="none" stroke="#b8aa80" stroke-width="5"
+                  stroke-linecap="round"/>
+            <path d="M74 190 L56 177 L78 169" fill="none" stroke="#b8aa80" stroke-width="5" stroke-linecap="round"
+                  stroke-linejoin="round"/>
+            <g filter="url(#shadow)" transform="translate(130 110) rotate(90) translate(-130 -110)">
+                <rect x="82" y="33" width="96" height="154" rx="12" fill="#171815" stroke="#c7ba91" stroke-width="4"/>
+                <rect x="91" y="47" width="78" height="124" rx="4" fill="#292a24" stroke="#6d6656" stroke-width="2"/>
+                <circle cx="130" cy="179" r="3" fill="#c7ba91"/>
+                <path d="M108 102 C117 89 143 89 152 102 C143 115 117 115 108 102Z" fill="#b8aa80" opacity=".9"/>
+                <circle cx="130" cy="102" r="6" fill="#171815"/>
+            </g>
+        </svg>
+        <h2 class="rotate-title">Поверните устройство горизонтально</h2>
+        <p class="rotate-caption">Так будет удобнее исследовать комнаты.</p>
+    </div>
+</section>
+
+<main class="game" id="game" hidden>
+    <header>
+        <div class="top-actions">
+            <button id="resetBtn">Сбросить игру</button>
+        </div>
+    </header>
+
+    <div class="layout">
+        <section>
+            <div class="scene-wrap">
+                <img id="sceneImage" src="img/assets/1.png" alt="">
+                <div class="darkness" id="darkness"></div>
+                <div id="hotspots"></div>
+                <div id="gameMessage" aria-live="polite"></div>
+            </div>
+            <nav class="room-actions" id="roomActions"></nav>
+        </section>
+
+        <aside class="sidebar">
+            <section class="panel">
+                <h2>Инвентарь</h2>
+                <div id="inventory">Пока пусто.</div>
+            </section>
+        </aside>
+    </div>
+</main>
+
+<div class="modal" id="modal" hidden>
+    <section class="modal-card" id="modalCard" role="dialog" aria-modal="true">
+        <h2 id="modalTitle"></h2>
+        <div id="modalBody"></div>
+        <div class="modal-actions" id="modalActions"></div>
+    </section>
+</div>
+
+<script>
+    const asset = name => `img/assets/${name}.png`;
+    const SAVE_KEY = "theLabSaveV2";
+    const LEADERBOARD_KEY = "theLabLeaderboardV1";
+    let messageTimer = null;
+    let fadeTimer = null;
+
+    const INITIAL_STATE = {
+        room: "bedroom",
+        items: [],
+        selected: null,
+        flags: {
+            noteA: false,
+            noteB: false,
+            cipherSeen: false,
+            boxOpen: false,
+            M: false,
+            bedroomDoor: false,
+            powerDoor: false,
+            ventOpen: false,
+            mapFound: false,
+            kruska: false,
+            fuseFound: false,
+            fuseSet: "",
+            skrep: false,
+            powerOn: false,
+            spich: false,
+            key: false,
+            keyt: false,
+            cofein: false,
+            waterTaken: false,
+            acidTaken: false,
+            fleshTaken: false,
+            fonar: false,
+            stak: false,
+            coffeeMade: false,
+            water: false,
+            wat: false,
+            removeCoffe: false,
+            removePlot: false,
+            removeCislota: false,
+            id: false,
+            removeCoffeinik: false,
+            removeCoffeFilter: false,
+            CoffeWater: false,
+            abg: false,
+            acf: false,
+            acg: false,
+            gaeh: false,
+            removeCoffeCruska: false,
+            burnerLit: false,
+            stakan: false,
+            handMade: false,
+            officeOpen: false,
+            phoneNumberSeen: false,
+            phoneCodeKnown: false,
+            computerLoggedIn: false,
+            foldersSolved: false,
+            papka: false,
+            screwdriverFound: false,
+            posterSeen: false,
+            wallOpened: false,
+            metalBoxOpened: false,
+            metal: false,
+            disketteUsed: false,
+            cameraDisabled: false,
+            blackPhone: false,
+            camera: false,
+            labCamera: false,
+            filt: false,
+            secretDoorOpen: false,
+            posterRotated: false,
+            ending: false,
+            instr: false,
+            visited: {}
+        },
+        startedAt: null,
+        elapsedMs: 0
+    };
+    const roomInfo = {
+        bedroom: {image: "1", title: "Спальня"},
+        corridor: {image: "4", title: "Коридор"},
+        corridorSecret: {image: "14", title: "Расширенный коридор"},
+        kitchen: {image: "5", title: "Кухня"},
+        lab: {image: "6", title: "Химлаборатория"},
+        lab1: {image: "6.1", title: "Химлаборатория"},
+        lab11: {image: "6.1.1", title: "Химлаборатория"},
+        lab2: {image: "6.2", title: "Химлаборатория"},
+        lab21: {image: "6.2.1", title: "Химлаборатория"},
+        lab3: {image: "6.3", title: "Химлаборатория"},
+        lab4: {image: "6.4", title: "Химлаборатория"},
+        lab5: {image: "6.5", title: "Химлаборатория"},
+        lab6: {image: "6.6", title: "Химлаборатория"},
+        power: {image: "8", title: "Электрощитовая"},
+        power1: {image: "8.1", title: "Электрощитовая"},
+        power2: {image: "8.2", title: "Электрощитовая"},
+        office: {image: "10.1", title: "Офис"},
+        office1: {image: "10", title: "Офис"},
+        maze: {image: "12", title: "Вентиляция"},
+        secret: {image: "13", title: "Потайная комната"},
+        black: {image: "15", title: "Внутри машины"}
+    };
+
+    const itemCards = {
+        "Половина заметки 2А": ["2a", "Половина заметки"],
+        "Половина заметки 2Б": ["2b", "Половина заметки"],
+        "Схема предохранителей": ["9", "Схема"],
+        "Текстовый файл": ["11", "Текстовый файл"],
+        "Схема лабиринта": ["12", "Схема лабиринта"],
+        "Инструкция эксперимента": ["7", "Инструкция"]
+    };
+
+    const roomNarration = {
+        bedroom: "У тебя такое ощущение, будто ты бесконечно проваливаешься в темноту. Ты изо всех сил стараешься\n" +
+            "уловить, где ты находишься и кем являешься, но тебе это не удается. Твои беспорядочные мысли\n" +
+            "неожиданно прерывает бестелесный голос : «Пора просыпаться!» Звук этого странного голоса\n" +
+            "вытаскивает тебя из глубокого сна. Вспышки сна, который ты видел только что, проносятся в твоём\n" +
+            "сознании, прежде чем окончательно покинуть твою память. Ты открываешь глаза и обнаруживаешь себя\n" +
+            "на кровати в темной квадратной комнате с белой плиткой на стенах.",
+        corridor: "Ты заходишь в длинный темный коридор, в самом конце которого развилка в две стороны. На стене рядом\n" +
+            "с вами ты замечаешь карту. На ней изображены несколько комнат, включая ту, из которой ты только что\n" +
+            "вышел. На стенах в конце коридора что-то написано.",
+        kitchen: "Когда ты заходишь в кухню, ты видишь небольшой стол со стулом. У дальней стены стоит небольшая кухня\n" +
+            "с кофеваркой. Ты слышишь жужжание мух со стороны мусорки в углу.",
+        lab: "Химлаборатория на удивление полупустая. Только небольшая рабочая зона — стол со скромным\n" +
+            "количеством химических инструментов и оборудования. По спине пробегает тревожное покалывание, и ты\n" +
+            "не можете избавиться от ощущения постороннего присутствия. Будто за тобой кто-то наблюдает.",
+        power: "Дверь со скрипом открывается в тесную комнату со спертым воздухом. Ты видишь трубы и провода,\n" +
+            "идущие по потолку. Посреди комнаты стоит большой блок предохранителя. Рядом стоит полупустой\n" +
+            "пыльный стеллаж.",
+        office: "Когда ты заходишь в комнату, ты замечаешь, что монотонная белая плитка по всему помещению\n" +
+            "уступила место чистым белым обоям в этом скромном офисе. В центре комнаты стоит стол с тихо\n" +
+            "жужжащим компьютером",
+        maze: "Ты продолжаешь ползти и видишь впереди свет.\n" +
+            "Перед тобой небольшое вентиляционное отверстие.\n" +
+            "Выглянув в него, ты видишь помещение, похожее на\n" +
+            "офис.",
+        secret: "Ты выползаешь из пыльной вентиляции на холодный пол темной комнаты. ты чуть не ударился головой\n" +
+            "о стол, стоящий над тобой. Когда ты вылезаешь из-под стола, ты замечаешь огромное устройство в стене,\n" +
+            "нависающее над тобой. Небольшой экран светится ярко-красным, и на нем мигает сообщение."
+    };
+
+    function freshState() {
+        return JSON.parse(JSON.stringify(INITIAL_STATE));
+    }
+
+    function loadState() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
+            if (!saved || !saved.flags || !saved.items) return freshState();
+
+            const base = freshState();
+            return {
+                ...base,
+                ...saved,
+                flags: {
+                    ...base.flags,
+                    ...saved.flags,
+                    visited: {...base.flags.visited, ...(saved.flags.visited || {})}
+                }
+            };
+        } catch {
+            return freshState();
+        }
+    }
+
+    let state = loadState();
+
+    function save() {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    }
+
+    function has(item) {
+        return state.items.includes(item);
+    }
+
+    function give(item) {
+        if (!has(item)) state.items.push(item);
+        state.selected = item;
+        renderInventory();
+        save();
+    }
+
+    function remove(item) {
+        state.items = state.items.filter(x => x !== item);
+        if (state.selected === item) state.selected = null;
+        renderInventory();
+        save();
+    }
+
+
+    function say(text) {
+        const box = document.getElementById("gameMessage");
+        clearTimeout(messageTimer);
+        clearTimeout(fadeTimer);
+
+        box.classList.remove("fade-out");
+        box.textContent = text || "";
+
+        if (!text) return;
+
+        messageTimer = setTimeout(() => {
+            box.classList.add("fade-out");
+            fadeTimer = setTimeout(() => {
+                if (box.classList.contains("fade-out")) {
+                    box.textContent = "";
+                    box.classList.remove("fade-out");
+                }
+            }, 600);
+        }, 3000);
+    }
+
+    function closeModal() {
+        document.getElementById("modal").hidden = true;
+        document.getElementById("modalCard").classList.remove("gm-card");
+    }
+
+    function buildModal(title, text, buttons = []) {
+        document.getElementById("modalTitle").textContent = title;
+        const body = document.getElementById("modalBody");
+        body.innerHTML = "";
+
+        const p = document.createElement("p");
+        p.textContent = text;
+        body.appendChild(p);
+
+        const actions = document.getElementById("modalActions");
+        actions.innerHTML = "";
+
+        buttons.forEach(({label, action}) => {
+            const button = document.createElement("button");
+            button.textContent = label;
+            button.onclick = action;
+            actions.appendChild(button);
+        });
+
+        const close = document.createElement("button");
+        close.textContent = "Закрыть";
+        close.onclick = closeModal;
+        actions.appendChild(close);
+
+        document.getElementById("modal").hidden = false;
+    }
+
+    function modal(title, text, buttons = []) {
+        document.getElementById("modalCard").classList.remove("gm-card");
+        buildModal(title, text, buttons);
+    }
+
+    function gm(text, onContinue) {
+        const card = document.getElementById("modalCard");
+        card.classList.add("gm-card");
+
+        document.getElementById("modalTitle").textContent = "";
+        const body = document.getElementById("modalBody");
+        body.innerHTML = "";
+
+        const label = document.createElement("div");
+        label.className = "gm-label";
+        label.textContent = "Ведущий";
+
+        const p = document.createElement("p");
+        p.className = "gm-text";
+        p.textContent = text;
+        body.append(label, p);
+
+        const actions = document.getElementById("modalActions");
+        actions.innerHTML = "";
+
+        const next = document.createElement("button");
+        next.textContent = "Продолжить";
+        next.onclick = () => {
+            closeModal();
+            if (onContinue) onContinue();
+        };
+        actions.appendChild(next);
+
+        document.getElementById("modal").hidden = false;
+    }
+
+    function inputModal(title, text, placeholder, callback) {
+        document.getElementById("modalCard").classList.remove("gm-card");
+        document.getElementById("modalTitle").textContent = title;
+
+        const body = document.getElementById("modalBody");
+        body.innerHTML = "";
+
+        const p = document.createElement("p");
+        p.textContent = text;
+
+        const input = document.createElement("input");
+        input.placeholder = placeholder || "";
+        input.autocomplete = "off";
+        body.append(p, input);
+
+        const actions = document.getElementById("modalActions");
+        actions.innerHTML = "";
+
+        const submit = document.createElement("button");
+        submit.textContent = "Ввести";
+        submit.onclick = () => {
+            const value = input.value.trim();
+            closeModal();
+            callback(value);
+            save();
+        };
+
+        const cancel = document.createElement("button");
+        cancel.textContent = "Отмена";
+        cancel.onclick = closeModal;
+
+        actions.append(submit, cancel);
+        document.getElementById("modal").hidden = false;
+        input.focus();
+
+        input.addEventListener("keydown", event => {
+            if (event.key === "Enter") submit.click();
+        });
+    }
+
+    function cardModal(file, title, text) {
+        document.getElementById("modalCard").classList.remove("gm-card");
+        document.getElementById("modalTitle").textContent = title;
+
+        const body = document.getElementById("modalBody");
+        body.innerHTML = "";
+
+        const p = document.createElement("p");
+        p.textContent = text;
+
+        const img = document.createElement("img");
+        img.src = asset(file);
+        img.alt = title;
+        img.onerror = () => {
+            img.hidden = true;
+        };
+
+        body.append(p, img);
+
+        const actions = document.getElementById("modalActions");
+        actions.innerHTML = "";
+        const close = document.createElement("button");
+        close.textContent = "Закрыть";
+        close.onclick = closeModal;
+        actions.appendChild(close);
+
+        document.getElementById("modal").hidden = false;
+    }
+
+    function inspectItem(item) {
+        if (item === "Коробка") {
+            if (state.flags.boxOpen) {
+                say("Коробка уже открыта.");
+                return;
+            }
+
+            inputModal("Коробка", "На крышке коробки пятизначный кодовый замок.", "_____", code => {
+                if (code === "26773") {
+                    state.flags.boxOpen = true;
+                    if (!has("Ключ от двери")) give("Ключ от двери");
+                    remove("Коробка")
+                    say("Замок щёлкает. Внутри лежит ключ от двери.");
+                } else {
+                    say("Код не подошёл.");
+                }
+                save();
+            });
+            return;
+        }
+
+        if (itemCards[item]) {
+            const [file, title] = itemCards[item];
+            cardModal(file, title, "Ты внимательно рассматриваешь найденный материал.");
+            return;
+        }
+
+        const descriptions = {
+            "Ключ от двери": "Старый металлический ключ.",
+            "Лабораторный стакан": "Пыльный стеклянный стакан.",
+            "Фонарик": "Небольшой фонарик. Он ещё работает.",
+            "ID-карта": "Пластиковая карта с выцветшей фотографией. P. Вандербум.",
+            "Бумажные скрепки": "Несколько металлических скрепок.",
+            "Гаечный ключ": "Тяжёлый гаечный ключ.",
+            "Вода": "Немного воды в ёмкости.",
+            "Кислота": "Едкая жидкость в закрытой пробирке.",
+            "Горячий кофе": "Кофе ещё горячий.",
+            "Плоть": "Кусок плоти, завёрнутый в бумагу.",
+            "Рука": "Холодная человеческая рука.",
+            "Отвёртка": "Небольшая отвёртка.",
+            "Предохранитель": "Запасной предохранитель.",
+            "Маленький металлический ключ": "Небольшой ключ с узкой бородкой.",
+            "Дискета": "Старая дискета без подписи.",
+            "Кофейник": "Пустой кофейник.",
+            "Использованный кофейный фильтр": "Фильтр с засохшей кофейной гущей.",
+            "Спички": "Коробок спичек."
+        };
+
+        modal(item, descriptions[item] || "Ты осматриваешь предмет.");
+    }
+
+    function renderInventory() {
+        const box = document.getElementById("inventory");
+        if (state.room === "black") {
+            box.innerHTML = "";
+            return;
+        }
+        box.innerHTML = "";
+
+        if (!state.items.length) {
+            box.textContent = "Пока пусто.";
+            return;
+        }
+
+        state.items.forEach(item => {
+            const button = document.createElement("button");
+            button.className = "item" + (state.selected === item ? " selected" : "");
+            button.textContent = item;
+
+            button.onclick = () => {
+                if (state.selected === item) {
+                    inspectItem(item);
+                } else {
+                    state.selected = item;
+                    renderInventory();
+                    say(`${item}`);
+                    save();
+                }
+            };
+
+            box.appendChild(button);
+        });
+    }
+
+    function addHotspot(id, label, x, y, w, h) {
+        const button = document.createElement("button");
+        button.className = "hotspot";
+        button.setAttribute("aria-label", label);
+        button.title = label;
+        button.style.left = `${x}%`;
+        button.style.top = `${y}%`;
+        button.style.width = `${w}%`;
+        button.style.height = `${h}%`;
+        button.onclick = () => interact(id);
+        document.getElementById("hotspots").appendChild(button);
+    }
+
+    function render() {
+        const info = roomInfo[state.room];
+        document.getElementById("sceneImage").src = asset(info.image);
+        document.getElementById("sceneImage").alt = "";
+
+        document.getElementById("darkness").classList.toggle("on", !state.flags.powerOn);
+        document.getElementById("hotspots").innerHTML = "";
+
+        const sidebar = document.querySelector(".sidebar");
+        if (sidebar) sidebar.style.display = (state.room === "black") ? "none" : "";
+
+        renderInventory();
+        renderHotspots();
+        renderRoomActions();
+        save();
+    }
+
+    function renderHotspots() {
+        const room = state.room;
+
+        if (room === "bedroom") {
+            addHotspot("bed", "Кровать", 51.5, 32, 38.5, 56);
+            addHotspot("dresser", "Тумбочка", 17.5, 57, 11, 28);
+            addHotspot("carpet", "Ковёр", 37, 85, 41.5, 8);
+            addHotspot("door", "Дверь", 29.5, 32, 16, 52);
+            addHotspot("switch", "Выключатель", 46, 55.5, 3, 7);
+            addHotspot("camera", "Камера", 19, 10, 6.4, 14.5);
+            addHotspot("vent", "Вентиляция", 88, 11, 5.2, 19);
+        }
+
+        if (room === "corridor") {
+            addHotspot("map-lab", "Химлаборатория", 28, 19.7, 12.5, 34);
+            addHotspot("map-office", "Офис", 61, 19.5, 12.7, 34);
+            addHotspot("map-kitchen", "Кухня", 41, 40, 8.5, 24.5);
+            addHotspot("map-power", "Электрощитовая", 52.7, 40.1, 8, 10);
+            addHotspot("map-bedroom", "Спальня", 46.1, 65.2, 13, 23);
+        }
+
+        if (room === "corridorSecret") {
+            addHotspot("map-lab", "Химлаборатория", 28, 19.7, 12.5, 34);
+            addHotspot("map-office", "Офис", 61, 19.5, 12.7, 34);
+            addHotspot("map-kitchen", "Кухня", 41, 40, 8.5, 24.5);
+            addHotspot("map-power", "Электрощитовая", 52.7, 40.1, 8, 10);
+            addHotspot("map-bedroom", "Спальня", 46.1, 65.2, 13, 23);
+            addHotspot("map-secret", "Потайной проход", 47.3, 24, 7.8, 10);
+        }
+
+        if (room === "kitchen") {
+            addHotspot("kitchenCamera", "Камера", 16.5, 9, 6.2, 15);
+            addHotspot("kitchenVent", "Вентиляция", 37, 19.3, 8, 7);
+            addHotspot("coat", "Халат", 14.5, 49, 5.6, 35.7);
+            addHotspot("container", "Термоконтейнер", 27.3, 50.5, 7.8, 12);
+            addHotspot("phone", "Телефон", 37.3, 39.6, 5.1, 12);
+            addHotspot("sink", "Вентиль", 47, 61, 13.5, 22);
+            addHotspot("sinkW", "Раковина", 51, 45.8, 6.5, 13);
+            addHotspot("coffee", "Кофеварка", 64.6, 40, 9, 19);
+            addHotspot("trash", "Мусорка", 79, 65.5, 5.3, 21);
+        }
+
+        if (room === "lab") {
+            addHotspot("labCamera", "Камера", 20, 10, 6.3, 15);
+            addHotspot("labVent", "Вентиляция", 59.5, 21, 8.2, 7);
+            addHotspot("labShelf", "Полка", 34.5, 25.5, 16.6, 17);
+            addHotspot("labDrawers", "Ящики стола", 58.5, 59, 11, 10);
+            addHotspot("labMug", "Кофейная кружка", 32.3, 51.8, 4.4, 4.5);
+            addHotspot("labCoffeePot", "Кофейник", 62.1, 49.5, 5.7, 6.9);
+            addHotspot("burner", "Горелка", 51.7, 47, 3.9, 9);
+        }
+        if (room === "lab1") {
+            addHotspot("labCamera", "Камера", 20, 10, 6.3, 15);
+            addHotspot("labVent", "Вентиляция", 59.5, 21, 8.2, 7);
+            addHotspot("labShelf", "Полка", 34.5, 25.5, 16.6, 17);
+            addHotspot("labDrawers", "Ящики стола", 58.5, 59, 11, 10);
+            addHotspot("labMug", "Кофейная кружка", 32.3, 51.8, 4.4, 4.5);
+            addHotspot("burner", "Горелка", 51.7, 47, 3.9, 9);
+        }
+        if (room === "lab11") {
+            addHotspot("labCamera", "Камера", 20, 10, 6.3, 15);
+            addHotspot("labVent", "Вентиляция", 59.5, 21, 8.2, 7);
+            addHotspot("labDrawers", "Ящики стола", 58.5, 59, 11, 10);
+            addHotspot("labMug", "Кофейная кружка", 32.3, 51.8, 4.4, 4.5);
+            addHotspot("burner", "Горелка", 51.7, 47, 3.9, 9);
+        }
+        if (room === "lab2") {
+            addHotspot("labCamera", "Камера", 20, 10, 6.3, 15);
+            addHotspot("labVent", "Вентиляция", 59.5, 21, 8.2, 7);
+            addHotspot("labShelf", "Полка", 34.5, 25.5, 16.6, 17);
+            addHotspot("labDrawers", "Ящики стола", 58.5, 59, 11, 10);
+            addHotspot("labCoffeePot", "Кофейник", 62.1, 49.5, 5.7, 6.9);
+            addHotspot("burner", "Горелка", 51.7, 47, 3.9, 9);
+        }
+        if (room === "lab21") {
+            addHotspot("labCamera", "Камера", 20, 10, 6.3, 15);
+            addHotspot("labVent", "Вентиляция", 59.5, 21, 8.2, 7);
+            addHotspot("labDrawers", "Ящики стола", 58.5, 59, 11, 10);
+            addHotspot("labCoffeePot", "Кофейник", 62.1, 49.5, 5.7, 6.9);
+            addHotspot("burner", "Горелка", 51.7, 47, 3.9, 9);
+        }
+        if (room === "lab3") {
+            addHotspot("labCamera", "Камера", 20, 10, 6.3, 15);
+            addHotspot("labVent", "Вентиляция", 59.5, 21, 8.2, 7);
+            addHotspot("labShelf", "Полка", 34.5, 25.5, 16.6, 17);
+            addHotspot("labDrawers", "Ящики стола", 58.5, 59, 11, 10);
+            addHotspot("burner", "Горелка", 51.7, 47, 3.9, 9);
+        }
+        if (room === "lab4") {
+            addHotspot("labCamera", "Камера", 20, 10, 6.3, 15);
+            addHotspot("labVent", "Вентиляция", 59.5, 21, 8.2, 7);
+            addHotspot("labDrawers", "Ящики стола", 58.5, 59, 11, 10);
+            addHotspot("labMug", "Кофейная кружка", 32.3, 51.8, 4.4, 4.5);
+            addHotspot("labCoffeePot", "Кофейник", 62.1, 49.5, 5.7, 6.9);
+            addHotspot("burner", "Горелка", 51.7, 47, 3.9, 9);
+        }
+        if (room === "lab5") {
+            addHotspot("labCamera", "Камера", 20, 10, 6.3, 15);
+            addHotspot("labVent", "Вентиляция", 59.5, 21, 8.2, 7);
+            addHotspot("labDrawers", "Ящики стола", 58.5, 59, 11, 10);
+            addHotspot("burner", "Горелка", 51.7, 47, 3.9, 9);
+        }
+        if (room === "lab6") {
+            addHotspot("labCamera", "Камера", 20, 10, 6.3, 15);
+            addHotspot("labVent", "Вентиляция", 59.5, 21, 8.2, 7);
+            addHotspot("labDrawers", "Ящики стола", 58.5, 59, 11, 10);
+            addHotspot("labBeaker", "Лабораторный стакан", 51.5, 38.5, 4.5, 8.5);
+            addHotspot("burner", "Горелка", 51.7, 47, 3.9, 9);
+        }
+
+        if (room === "power") {
+            addHotspot("fusebox", "Блок предохранителей", 25.5, 42.5, 19.5, 43);
+            addHotspot("powershelf", "Стеллаж", 51.4, 27.5, 17, 59);
+            addHotspot("pipe", "Труба", 72, 10, 16.2, 15);
+            addHotspot("powerVent", "Вентиляция", 56.5, 20, 8.4, 8);
+        }
+        if (room === "power1") {
+            addHotspot("fusebox", "Блок предохранителей", 25.5, 42.5, 19.5, 43);
+            addHotspot("pipe", "Труба", 72, 10, 16.2, 15);
+            addHotspot("powerVent", "Вентиляция", 56.5, 20, 8.4, 8);
+        }
+        if (room === "power2") {
+            addHotspot("fusebox", "Блок предохранителей", 25.5, 42.5, 19.5, 43);
+            addHotspot("powerVent", "Вентиляция", 56.5, 20, 8.4, 8);
+            addHotspot("stain", "Пятно на полу", 77.7, 85.5, 4, 2);
+        }
+
+        if (room === "office") {
+            addHotspot("desk", "Стол", 45, 60, 31, 30);
+            addHotspot("computer", "Компьютер", 48.4, 37, 14, 24);
+            addHotspot("folders", "Книжный шкаф", 19, 23, 18.3, 65.6);
+            addHotspot("poster", "Плакат", 70, 23, 12.6, 29);
+            addHotspot("officeVent", "Вентиляция", 43.3, 19.5, 8.5, 7.5);
+        }
+        if (room === "office1") {
+            addHotspot("desk", "Стол", 45, 60, 31, 30);
+            addHotspot("computer", "Компьютер", 48.4, 37, 14, 24);
+            addHotspot("folders", "Книжный шкаф", 19, 23, 18.3, 65.6);
+            addHotspot("poster", "Плакат", 70, 23, 12.6, 29);
+            addHotspot("officeVent", "Вентиляция", 43.3, 19.5, 8.5, 7.5);
+        }
+
+        if (room === "maze") {
+            addHotspot("mazeNode1", "Продолжить по тоннелю", 47.5, 29.5, 4.5, 7.4);
+            addHotspot("mazeNode2", "Продолжить по тоннелю", 42.5, 47, 4.5, 7.5);
+            addHotspot("mazeNode3", "Продолжить по тоннелю", 52, 48.5, 4.3, 7.4);
+            addHotspot("mazeNode4", "Продолжить по тоннелю", 60, 62.4, 4, 6.4);
+            addHotspot("mazeNode5", "Продолжить по тоннелю", 34.5, 55.7, 4, 7.5);
+            addHotspot("mazeNode6", "Дальше по тоннелю", 44.9, 66.4, 4, 6.8);
+        }
+
+        if (room === "secret") {
+            addHotspot("machine", "Машина", 26.4, 8.3, 30.3, 71);
+            addHotspot("secretPoster", "Плакат", 67, 29, 13, 23.7);
+            addHotspot("redButton", "Красная кнопка", 88, 48.4, 2.8, 6.8);
+            addHotspot("papers", "Бумаги на полу", 31.5, 87.4, 17.3, 5);
+            addHotspot("secretCamera", "Камера", 13.5, 8.7, 6.3, 15);
+        }
+        if (room === "black") {
+            addHotspot("eyes", "Финал", 39, 35, 3.5, 3);
+        }
+    }
+
+    function renderRoomActions() {
+        const nav = document.getElementById("roomActions");
+        nav.innerHTML = "";
+
+        if (state.room === "black") return;
+
+        const addButton = (label, callback) => {
+            const button = document.createElement("button");
+            button.textContent = label;
+            button.onclick = callback;
+            nav.appendChild(button);
+        };
+
+        const notOnMap = state.room !== "bedroom" &&
+            state.room !== "corridor" &&
+            state.room !== "corridorSecret" &&
+            state.room !== "maze";
+
+        if (notOnMap && state.flags.bedroomDoor) {
+            const target = state.flags.secretDoorOpen ? "corridorSecret" : "corridor";
+            addButton("Карта коридора", () => go(target));
+        }
+
+        if (state.room === "maze") {
+            addButton("Назад в спальню", () => go("bedroom"));
+        }
+    }
+
+    function go(room) {
+        state.room = room;
+        say("");
+        render();
+
+        if (!state.flags.visited[room]) {
+            state.flags.visited[room] = true;
+            save();
+            if (roomNarration[room]) {
+                gm(roomNarration[room]);
+            }
+        }
+    }
+
+    function enterRoom(room) {
+        if (room === "power") {
+            if ((state.selected === "ID-карта" && has("ID-карта")) || (state.selected === "Бумажные скрепки" && has("Бумажные скрепки")) || state.flags.powerDoor) {
+                state.flags.powerDoor = true;
+                if (state.flags.key) {
+                    go("power1");
+                } else if (state.flags.keyt) {
+                    go("power2");
+                } else {
+                    go("power");
+                }
+            } else {
+                say("Дверь электрощитовой заперта.");
+            }
+            return;
+        }
+
+        if (room === "office" || room === "office1") {
+            if (!state.flags.powerOn) {
+                say("Считыватель у двери не работает.");
+                return;
+            }
+
+            if (!state.flags.officeOpen) {
+                if (state.selected === "Рука" && has("Рука")) {
+                    remove("Рука");
+                    state.flags.officeOpen = true;
+                    say("Считыватель принимает отпечаток. Дверь открывается.");
+                } else {
+                    say("Считыватель не принимает отпечаток.");
+                    return;
+                }
+            }
+            if (state.flags.papka) {
+                go("office1");
+            } else {
+                go("office");
+            }
+        }
+    }
+
+    function interact(id) {
+        switch (id) {
+            case "bed":
+                if (!state.flags.noteA) {
+                    state.flags.noteA = true;
+                    give("Половина заметки 2А");
+                    cardModal("2a", "Половина заметки", "Под матрасом лежит сложенный клочок бумаги.");
+                } else say("Под матрасом больше ничего нет.");
+                break;
+
+            case "dresser":
+                modal("Тумбочка", "Верхний ящик выдвинут. Внутри лежит коробка.", [
+                    {
+                        label: "Верхний ящик", action: () => {
+                            closeModal();
+                            if (!has("Коробка") && !state.flags.boxOpen) {
+                                give("Коробка");
+                                say("В ящике лежит небольшая запертая коробка. Осмотри её в инвентаре.");
+                            } else {
+                                say("Верхний ящик пуст.");
+                            }
+                        }
+                    },
+                    {
+                        label: "Средний ящик", action: () => {
+                            closeModal();
+                            if (!state.flags.noteB) {
+                                state.flags.noteB = true;
+                                give("Половина заметки 2Б");
+                                cardModal("2b", "Половина заметки", "В ящике лежит ещё один клочок бумаги.");
+                            } else say("Средний ящик пуст.");
+                        }
+                    },
+                    {
+                        label: "Нижний ящик", action: () => {
+                            closeModal();
+                            if (!state.flags.fonar) {
+                                state.flags.fonar = true
+                                say("В нижнем ящике лежит фонарик.");
+                                give("Фонарик");
+                            } else say("Нижний ящик пуст.");
+                        }
+                    }
+                ]);
+                break;
+
+            case "carpet":
+                if (state.selected !== "Фонарик" && !has("Фонарик")) {
+                    say(state.selected
+                        ? "Этот предмет не помогает рассмотреть надпись."
+                        : "Под ковром что-то написано, но в комнате слишком темно.");
+                } else {
+                    state.flags.cipherSeen = true;
+                    cardModal("3", "Надпись под ковром", "В луче фонарика проступают цифры и буквы.");
+                }
+                break;
+
+            case "door":
+                if (state.flags.bedroomDoor) {
+                    go(state.flags.secretDoorOpen ? "corridorSecret" : "corridor");
+                } else if (state.selected === "Ключ от двери" && has("Ключ от двери")) {
+                    remove("Ключ от двери");
+                    remove("Половина заметки 2А");
+                    remove("Половина заметки 2Б");
+                    state.flags.bedroomDoor = true;
+                    gm("Ключ поворачивается с сухим щелчком. Дверь медленно отходит от косяка.",
+                        () => go(state.flags.secretDoorOpen ? "corridorSecret" : "corridor"));
+                } else {
+                    say(state.selected ? "Этот предмет не подходит к замку." : "Дверь заперта.");
+                }
+                break;
+
+            case "switch":
+                say("Выключатель не реагирует.");
+                break;
+
+            case "camera":
+            case "kitchenCamera":
+            case "labCamera":
+            case "secretCamera":
+                say("Камера неподвижно висит на потолке и будто\n" +
+                    "беспрестанно наблюдает за тобой. Это даже\n" +
+                    "немного нервирует.");
+                break;
+
+            case "vent":
+                if (!state.flags.ventOpen && state.selected === "Отвёртка" && has("Отвёртка")) {
+                    state.flags.ventOpen = true;
+                    say("Решётка освобождается. За ней виден узкий тоннель.");
+                    remove("Отвёртка")
+                } else if (!state.flags.ventOpen) {
+                    say("Решётка высоко и прикручена к стене.");
+                } else if (state.flags.mapFound) {
+                    go("maze");
+                } else {
+                    say("За решёткой начинается тёмный вентиляционный ход.");
+                }
+                break;
+
+            case "map-lab":
+                if(state.flags.stakan && state.flags.stak && state.flags.kruska && state.flags.cofein){
+                    go("lab6");
+                }else if(!state.flags.stakan && state.flags.stak && !state.flags.kruska && state.flags.cofein){
+                    go("lab11");
+                }else if(!state.flags.stakan && !state.flags.stak && !state.flags.kruska && state.flags.cofein){
+                    go("lab1");
+                }else if(!state.flags.stakan && state.flags.stak && state.flags.kruska && !state.flags.cofein){
+                    go("lab21");
+                }else if(!state.flags.stakan && !state.flags.stak && state.flags.kruska && !state.flags.cofein){
+                    go("lab2");
+                }else if(!state.flags.stakan && !state.flags.stak && state.flags.kruska && state.flags.cofein){
+                    go("lab3");
+                }else if(!state.flags.stakan && state.flags.stak && !state.flags.kruska && !state.flags.cofein){
+                    go("lab4");
+                }else if(!state.flags.stakan && state.flags.stak && state.flags.kruska && state.flags.cofein){
+                    go("lab5");
+                }else if(state.flags.stakan && state.flags.stak && state.flags.kruska && state.flags.cofein){
+                    go("lab6");
+                }else{
+                    go("lab");
+                }
+                break;
+            case "map-kitchen":
+                go("kitchen");
+                break;
+            case "map-power":
+                enterRoom("power");
+                break;
+            case "map-office":
+                gm("Когда ты проходишь по коридору, ты видишь надпись: 'Пора просыпаться'.", null)
+                if (state.flags.papka) {
+                    enterRoom("office1");
+                } else {
+                    enterRoom("office");
+                }
+                break;
+            case "map-bedroom":
+                go("bedroom");
+                break;
+            case "map-secret":
+                if (state.flags.secretDoorOpen) go("secret");
+                break;
+
+            case "kitchenVent":
+            case "officeVent":
+                say("Решётка находится высоко. За ней темно.");
+                break;
+            case "labVent":
+                if (!state.flags.labCamera) {
+                    state.flags.labCamera = true;
+                    const sceneImg = document.getElementById("sceneImage");
+                    const hotspots = document.getElementById("hotspots");
+                    const sidebar = document.querySelector(".sidebar");
+                    sceneImg.src = asset("15");
+                    hotspots.innerHTML = "";
+                    if (sidebar) sidebar.style.display = "none";
+                    setTimeout(() => {
+                        render();
+                        gm("Ты заглядываешь в вентиляцию и почти что\n" +
+                            "падаешь от ужаса! По ту сторону решетки\n" +
+                            "на вас смотрят два светящихся глаза. Глаза\n" +
+                            "пропадают в глубине туннеля, но ты еще какое-\n" +
+                            "то время слышишь, как что-то натыкается на\n" +
+                            "стены, и звук постепенно стихает.", null);
+                    }, 1500);
+                } else {
+                    say("Решётка находится высоко. За ней темно.");
+                }
+                break;
+            case "coat":
+                if (!state.flags.id) {
+                    state.flags.id = true;
+                    give("ID-карта");
+                    say("В кармане халата лежит ID-карта.");
+                } else say("Халат пуст.");
+                break;
+
+            case "sink":
+                if (state.selected === "Гаечный ключ" && has("Гаечный ключ")) {
+                    if (!state.flags.waterTaken) {
+                        state.flags.waterTaken = true;
+                        say("Вентиль поддаётся.");
+                    }
+                } else {
+                    say(state.selected ? "Этот предмет не подходит к вентилю." : "Вентиль туго закручен.");
+                }
+                break;
+
+            case "sinkW":
+                if (state.flags.waterTaken && !state.flags.wat) {
+                    state.flags.wat = true
+                    give("Вода");
+                    say("Ты набираешь немного воды.");
+                } else say("Вода не течёт.");
+                break;
+
+            case "trash":
+                if (!state.flags.filt) {
+                    state.flags.filt = true;
+                    give("Использованный кофейный фильтр");
+                    say("В мусорке находится использованный кофейный фильтр.");
+                } else say("В мусорке больше ничего полезного.");
+                break;
+
+            case "container":
+                if (state.flags.fleshTaken) {
+                    say("Термоконтейнер пуст.");
+                } else {
+                    inputModal("Термоконтейнер", "Пятибуквенный замок.", "Код", code => {
+                        if (code.toUpperCase() === "ХОЛОД") {
+                            state.flags.fleshTaken = true;
+                            give("Плоть");
+                            say("Контейнер открывается. Внутри лежит завёрнутый предмет.");
+                        } else say("Код не подошёл.");
+                    });
+                }
+                break;
+
+            case "phone":
+                if (!state.flags.powerOn) {
+                    say("Телефон не работает.");
+                } else if (state.flags.phoneNumberSeen) {
+                    inputModal("Телефон", "Введите номер телефона", "_________", code => {
+                        if (code === "099174190") {
+                            inputModal("Телефон", "В трубке спрашивают: «Кто вы?»", "Кто вы?", code => {
+                                if (code === "Р ВАНДЕРБУМ" || code === "P. Вандербум" || code === "P Вандербум") {
+                                    state.flags.phoneCodeKnown = true;
+                                    say("Голос произносит несколько цифр.");
+                                    gm("В трубке звучит короткая последовательность цифр. 3141.", null);
+                                    state.flags.phoneNumberSeen = false;
+                                } else say("Я вас не знаю.");
+                            });
+                        } else say("Нет гудков.");
+                    });
+                } else if (state.flags.blackPhone) {
+                    gm("Ты слышишь скрипучий голос.<<Тук-тук, истина лежит прямо за\n" +
+                        "Озером>>", null);
+                    state.flags.blackPhone = false;
+                } else {
+                    say("В трубке слышен статичный гудок.");
+                }
+                break;
+
+            case "coffee":
+                if (!state.flags.powerOn) {
+                    say("Кофеварка не работает.");
+                } else if (state.flags.coffeeMade) {
+                    say("Кофе уже приготовлен.");
+                } else if (state.selected === "Кофейник" && has("Кофейник")) {
+                    state.flags.removeCoffeinik = true;
+                    remove("Кофейник")
+                    say("Ты поставил кофейник в кофеварку.");
+                } else if (state.selected === "Использованный кофейный фильтр" && has("Использованный кофейный фильтр")) {
+                    state.flags.removeCoffeFilter = true;
+                    say("Ты поставил кофейный фильтр в кофеварку.");
+                    remove("Использованный кофейный фильтр")
+                } else if (state.selected === "Вода" && has("Вода")) {
+                    state.flags.CoffeWater = true;
+                    say("Ты налил воду в кофеварку.");
+                } else if (state.selected === "Кофейная кружка" && has("Кофейная кружка")) {
+                    state.flags.removeCoffeCruska = true;
+                    say("Ты поставил кружку рядом с кофеваркой.");
+                    remove("Кофейная кружка")
+                } else if (state.flags.CoffeWater && state.flags.removeCoffeinik && state.flags.removeCoffeFilter && state.flags.removeCoffeCruska) {
+                    state.flags.coffeeMade = true;
+                    give("Горячий кофе");
+                    say("Кофеварка гудит и наполняет кофейник.");
+                } else {
+                    say(state.selected ? "Этот предмет не подходит к кофеварке." : "Кофеварке не хватает нескольких частей.");
+                }
+                break;
+
+            case "labDrawers":
+                modal("Ящики химического стола", "Два ящика стола.", [
+                    {
+                        label: "Верхний ящик", action: () => {
+                            closeModal();
+                            if (!state.flags.instr) {
+                                state.flags.instr = true;
+                                give("Инструкция эксперимента");
+                                cardModal("7", "Инструкция", "Ты находишь лист с записями об эксперименте.");
+                            } else say("Верхний ящик пуст.");
+                        }
+                    },
+                    {
+                        label: "Нижний ящик", action: () => {
+                            closeModal();
+                            if (!state.flags.skrep) {
+                                state.flags.skrep = true;
+                                give("Бумажные скрепки");
+                            }
+                            if (!state.flags.spich) {
+                                state.flags.spich = true;
+                                give("Спички");
+                                say("В ящике лежат спички и бумажные скрепки.");
+                            }
+                        }
+                    }
+                ]);
+                break;
+
+            case "labMug":
+                if (!state.flags.kruska) {
+                    state.flags.kruska = true;
+                    give("Кофейная кружка");
+                    say("Ты забираешь кофейную кружку со стола.");
+                    if (state.flags.cofein && state.flags.stak){
+                        go("lab5")
+                    }else if(!state.flags.cofein && state.flags.stak){
+                        go("lab21")
+                    }else if(state.flags.cofein && !state.flags.stak){
+                        go("lab3")
+                    }else {
+                        go("lab2")
+                    }
+                } else say("Кружка уже у тебя.");
+                break;
+
+            case "labCoffeePot":
+                if (!state.flags.cofein) {
+                    state.flags.cofein = true;
+                    give("Кофейник");
+                    say("Ты забираешь кофейник со стола.");
+                    if (state.flags.stak && state.flags.kruska) {
+                        go("lab5")
+                    }else if (state.flags.stak && !state.flags.kruska){
+                        go("lab11")
+                    }else if (!state.flags.stak && state.flags.kruska){
+                        go("lab3")
+                    }else {
+                        go("lab1")
+                    }
+                } else say("Кофейник уже у тебя.");
+                break;
+
+            case "labShelf":
+                if (!state.flags.stak) {
+                    state.flags.stak = true;
+                    say("На полке стоят лабораторные колбы.");
+                    give("Лабораторный стакан")
+                    if(state.flags.cofein && state.flags.kruska){
+                        go("lab5")
+                    }else if(!state.flags.cofein && state.flags.kruska){
+                        go("lab21")
+                    }else if(state.flags.cofein && !state.flags.kruska){
+                        go("lab11")
+                    }else {
+                        go("lab4")
+                    }
+                } else say("Стакан уже у тебя.");
+                break;
+
+            case "labBeaker":
+                if (!state.flags.stakan) {
+                    say("Этот предмет не подходит к горелке.");
+                } else if (state.selected === "Плоть" && has("Плоть")) {
+                    remove("Плоть")
+                    say("Ты положил плоть в стакан.");
+                    state.flags.removePlot = true;
+                } else if (state.selected === "Вода" && has("Вода")) {
+                    state.flags.water = true;
+                    say("Ты налил воды в стакан.");
+                } else if (state.selected === "Кислота" && has("Кислота")) {
+                    remove("Кислота")
+                    say("Ты добавил кислоты в стакан.");
+                    state.flags.removeCislota = true;
+                } else if (state.selected === "Горячий кофе" && has("Горячий кофе")) {
+                    remove("Горячий кофе")
+                    say("Ты добавил кофе в стакан.");
+                    state.flags.removeCoffe = true;
+                } else if (!state.flags.burnerLit) {
+                    say("Смесь холодная.");
+                } else if (state.flags.removePlot && state.flags.water && state.flags.removeCislota && state.flags.removeCoffe && state.flags.burnerLit && has("Инструкция эксперимента")) {
+                    ["Вода", "Инструкция эксперимента"].forEach(remove);
+                    state.flags.handMade = true;
+                    give("Рука");
+                    say("Смесь темнеет. Ты отступаешь от стола.");
+                    gm("Смесь начинает сильно пениться, разбухать,\n" +
+                        "и ты отступаешь назад. Стакан внезапно\n" +
+                        "разбивается вдребезги, и что-то влажное\n" +
+                        "плюхается на пол. Вместо жидкости на полу\n" +
+                        "лежит человеческая рука и подергивается.", null);
+                }
+                break;
+
+            case "burner":
+                if (state.selected === "Спички" && has("Спички")) {
+                    remove("Спички");
+                    state.flags.burnerLit = true;
+                    say("Горелка загорается.");
+                } else {
+                    say("Этот предмет не зажигает горелку.");
+                }
+                if (state.selected === "Лабораторный стакан" && has("Лабораторный стакан") && !state.flags.stakan) {
+                    say("Стакан на горелке");
+                    remove("Лабораторный стакан")
+                    go("lab6")
+                    state.flags.stakan = true;
+                    break;
+                }
+                break;
+
+            case "powershelf":
+                if (!state.flags.gaeh) {
+                    state.flags.gaeh = true;
+                    give("Гаечный ключ");
+                    state.flags.key = true;
+                    go("power1")
+                    say("На стеллаже лежит гаечный ключ.");
+                } else say("На стеллаже больше ничего полезного нет.");
+                break;
+
+            case "pipe":
+                if (state.selected === "Гаечный ключ" && has("Гаечный ключ")) {
+                    if (!state.flags.acidTaken) {
+                        state.flags.acidTaken = true;
+                        state.flags.keyt = true;
+                        go("power2")
+                        say("Из повреждённой трубы вытекло немного жидкости.");
+                    } else say("Труба уже повреждена.");
+                } else {
+                    say(state.selected ? "Этот предмет не подходит к трубе." : "Из трубы сочится едкая жидкость.");
+                }
+                break;
+
+            case "powerVent":
+                if (state.selected === "Бумажные скрепки" && has("Бумажные скрепки")) {
+                    if (!state.flags.fuseFound) {
+                        state.flags.fuseFound = true;
+                        give("Предохранитель");
+                        remove("Бумажные скрепки")
+                        say("Скрепкой удаётся достать предмет из вентиляции.");
+                    } else say("В вентиляции больше ничего нет.");
+                } else {
+                    say(state.selected ? "Этим предметом решётку не подцепить." : "За решёткой что-то виднеется.");
+                }
+                break;
+
+            case "fusebox": {
+                if (state.flags.acg) {
+                    cardModal("9.1", "Блок предохранителей", "Ты осматриваешь блок и ряды обозначений.");
+                } else if (state.flags.abg) {
+                    cardModal("9.2", "Блок предохранителей", "Ты осматриваешь блок и ряды обозначений.");
+                } else if (state.flags.acf) {
+                    cardModal("9.3", "Блок предохранителей", "Ты осматриваешь блок и ряды обозначений.");
+                } else {
+                    cardModal("9", "Блок предохранителей", "Ты осматриваешь блок и ряды обозначений.");
+                }
+                document.getElementById("modalActions").innerHTML = "";
+
+                const setButton = document.createElement("button");
+                setButton.textContent = "Переставить предохранители";
+                setButton.onclick = () => {
+                    closeModal();
+                    if (!state.flags.powerOn &&
+                        (state.selected !== "Предохранитель" || !has("Предохранитель"))) {
+                        say("В блоке не хватает запасного предохранителя.");
+                        return;
+                    }
+                    inputModal("Блок предохранителей", "Ряды можно переставить.", "Расположение", setFusePattern);
+                };
+                document.getElementById("modalActions").appendChild(setButton);
+                break;
+            }
+
+            case "stain":
+                if (!state.flags.kis) {
+                    state.flags.kis = true;
+                    say("На полу небольшое коррозионное пятно.");
+                    give("Кислота")
+                } else {
+                    say("Кислота уже взята.")
+                }
+                break;
+
+            case "mazeNode1":
+            case "mazeNode2":
+            case "mazeNode3":
+            case "mazeNode4":
+            case "mazeNode5":
+                say("Тоннель поворачивает. Ты продолжаешь ползти.");
+                break;
+
+            case "mazeNode6":
+                go("secret");
+                break;
+
+            case "desk":
+                modal("Стол", "В столе два ящика.", [
+                    {
+                        label: "Верхний ящик", action: () => {
+                            closeModal();
+                            if (!state.flags.foldersSolved) {
+                                say("Верхний ящик не открывается.");
+                            } else {
+                                if (!state.flags.screwdriverFound) {
+                                    state.flags.screwdriverFound = true;
+                                    give("Отвёртка");
+                                    state.flags.mapFound = true;
+                                }
+                                cardModal("12", "Схема лабиринта", "В ящике лежит отвёртка и начерчена на дне ящика схема.");
+                                state.flags.mapFound = true;
+                            }
+                        }
+                    },
+                    {
+                        label: "Нижний ящик", action: () => {
+                            closeModal();
+                            if (!state.flags.M) {
+                                give("Папка М");
+                                state.flags.M = true;
+                                say("В ящике лежит белая папка.");
+                            } else say("Нижний ящик пуст.");
+                        }
+                    }
+                ]);
+                break;
+
+            case "computer":
+                computerInteraction();
+                break;
+
+            case "folders":
+                if ((state.selected === "Папка М" && has("Папка М")) || state.flags.papka) {
+                    if (state.flags.foldersSolved) {
+                        say("Папки уже расставлены.");
+                    } else {
+                        remove("Папка М")
+                        state.flags.papka = true;
+                        inputModal("Книжный шкаф", "Ты переставляешь папки на полке.", "Фраза", answer => {
+                            if (answer.toUpperCase().replace(/\s/g, "") === "ЯВСПОМИНАЮ") {
+                                state.flags.foldersSolved = true;
+                                say("Папки выстроены в новом порядке. Кажется открылся верхний ящик.");
+                            } else say("Такой порядок не подошёл.");
+                        });
+                        go("office1");
+                    }
+                } else {
+                    say("Просто книжный шкаф с папками.");
+                }
+                break;
+
+            case "poster":
+                if (!state.flags.posterSeen) {
+                    state.flags.posterSeen = true;
+                    state.flags.phoneNumberSeen = true;
+                    say("На плакате указан номер телефона. Стена за ним звучит глухо.");
+                } else if (!state.flags.wallOpened) {
+                    if (state.selected === "Гаечный ключ" && has("Гаечный ключ")) {
+                        state.flags.wallOpened = true;
+                        say("За плакатом открывается полое пространство.");
+                    } else {
+                        say("За плакатом пустая на вид стена. При постукивании звук кажется глухим.");
+                    }
+                } else if (!state.flags.metalBoxOpened) {
+                    if (state.selected === "Маленький металлический ключ" &&
+                        has("Маленький металлический ключ")) {
+                        remove("Маленький металлический ключ");
+                        state.flags.metalBoxOpened = true;
+                        give("Дискета");
+                        remove("Гаечный ключ")
+                        say("Металлический замок открывается. В коробке лежит дискета.");
+                    } else say("Металлическая коробка заперта.");
+                } else {
+                    say("За плакатом осталась открытая металлическая коробка.");
+                }
+                break;
+
+            case "secretPoster":
+                state.flags.posterRotated = true;
+                say("Плакат поворачивается на 180 градусов. На обратной стороне видны отметки.");
+                break;
+
+            case "papers":
+                if (!state.flags.metal) {
+                    state.flags.metal = true;
+                    give("Маленький металлический ключ");
+                    say("Под бумагами лежит маленький металлический ключ.");
+                } else say("Под бумагами больше ничего нет.");
+                break;
+
+            case "redButton":
+                if (!state.flags.secretDoorOpen) {
+                    state.flags.secretDoorOpen = true;
+                    say("За стеной срабатывает тяжёлый механизм.");
+                    gm("Сразу как только ты нажимаешь на кнопку,\n" +
+                        "ты слышишь, как за стеной оживает тяжелый\n" +
+                        "механизм. Рядом с кнопкой открывается\n" +
+                        "большой квадратный проем, и на другой\n" +
+                        "стороны двери вы узнаете надпись: «Пора\n" +
+                        "просыпаться». За дверью ты видишь знакомый\n" +
+                        "коридор.", null);
+                } else say("Механизм уже сработал.");
+                break;
+
+            case "machine":
+                handleMachine();
+                break;
+
+            case "eyes":
+                askFinalWord();
+                break;
+        }
+
+        save();
+        renderInventory();
+        updateDarkness();
+    }
+
+    function computerInteraction() {
+        if (!state.flags.powerOn) {
+            say("Компьютер не включается.");
+            return;
+        }
+        say("На экране появляется окно авторизации.");
+        if (!state.flags.computerLoggedIn) {
+            inputModal("Компьютер", "Окно авторизации.", "Пароль", code => {
+                if (code === "3141") {
+                    state.flags.computerLoggedIn = true;
+                    remove("ID-карта")
+                    say("На экране открывается рабочий стол.");
+                } else say("Пароль не принят.");
+            });
+            return;
+        }
+
+        if (state.selected === "Дискета" && has("Дискета")) {
+            remove("Дискета");
+            state.flags.disketteUsed = true;
+            say("Компьютер читает дискету.");
+            gm("Появляется черная консоль с надписью:\n" +
+                "«Программа для извлечения воспоминаний».\n" +
+                "Полоса загрузки медленно заполняется.\n" +
+                "Пока программа загружается, на экране\n" +
+                "открывается и запускается видео", () => gm("Ты видишь самого себя: ты стоишь в машине,\n" +
+                "смотришь прямо в камеру и повторяешь\n" +
+                "слова: разум, душа, память, узрите, замóк.\n" +
+                "Пока видео повторяется несколько раз, полоса\n" +
+                "загрузки заполняется до 100%, и все экраны\n" +
+                "закрываются."), null);
+            return;
+        }
+
+        modal("Компьютер", "На рабочем столе несколько значков.", [
+            {
+                label: "Текстовый файл", action: () => {
+                    closeModal();
+                    cardModal("11", "Текстовый файл", "Ты открываешь найденный файл.");
+                }
+            },
+            {
+                label: "Видеопоток камер", action: () => {
+                    closeModal();
+                    if (state.flags.disketteUsed && state.flags.cameraDisabled) {
+                        gm("На экране с шумами ты видишь полностью\n" +
+                            "черный силуэт, стоящий на кухне с телефоном\n" +
+                            "у уха. Он стоит еще секунду, затем бросает\n" +
+                            "трубку и покидает комнату.", null);
+                        state.flags.blackPhone = true;
+                        state.flags.cameraDisabled = false;
+                    } else if (!state.flags.cameraDisabled && !state.flags.camera) {
+                        state.flags.cameraDisabled = true;
+                        state.flags.camera = true;
+                        gm("Когда ты открываешь программу, ты видишь 4\n" +
+                            "экрана, расположенных 2х2. На каждом экране\n" +
+                            "одна из комнат, где ты уже ранее был: спальня,\n" +
+                            "кухня, химлаборатория, но четвертую комнату\n" +
+                            "ты не узнаешь. Она практически черная, не\n" +
+                            "считая пары белых светящихся глаз, которые\n" +
+                            "пристально смотрят на вас через экран.\n" +
+                            "Глаза медленно закрываются, и изображение\n" +
+                            "начинает моргать. Все камеры, одна за другой,\n" +
+                            "перестают работать, оставив за собой лишь\n" +
+                            "статичный потрескивающий звук", null);
+                    } else {
+                        gm("Когда ты открываешь программу, ты видишь 4\n" +
+                            "экрана, расположенных 2х2. На каждом экране\n" +
+                            "одна из комнат, где ты уже ранее был.", null);
+                    }
+                }
+            }
+        ]);
+    }
+
+    function setFusePattern(raw) {
+        const answer = raw.toUpperCase().replace(/[^A-Z]/g, "").split("").sort().join("");
+
+        if (answer === "ABG" && state.selected === "Предохранитель" && has("Предохранитель")) {
+            remove("Предохранитель");
+            state.flags.fuseSet = "ABG";
+            state.flags.powerOn = true;
+            state.flags.abg = true;
+            state.flags.acf = false;
+            state.flags.acg = false;
+            remove("Фонарик")
+            gm("Когда последний предохранитель занимает\n" +
+                "своего места, ты слышишь потрескивание\n" +
+                "электричества и видишь, как пара искорок\n" +
+                "вылетает из блока предохранителя. Лампа над\n" +
+                "вами несколько раз моргает и затем загорается,\n" +
+                "осветив всю комнату.", null);
+            flickerLight();
+        } else if (answer === "ACF" && state.flags.posterRotated) {
+            state.flags.fuseSet = "ACF";
+            state.flags.powerOn = true;
+            state.flags.acf = true;
+            state.flags.acg = false;
+            state.flags.abg = false;
+            gm("Ты вставляешь последний предохранитель,\n" +
+                "и ослепительные искры разлетаются во все\n" +
+                "стороны из блока предохранителя. Свет в\n" +
+                "комнате несколько раз мигает, прежде чем\n" +
+                "отключиться и погрузить тебя в темноту.\n" +
+                "Ты слышишь, как вдали усилилось жужжание\n" +
+                "большого устройства.", null);
+            flickerLight();
+        } else {
+            state.flags.acg = true;
+            state.flags.abg = false;
+            state.flags.acf = false;
+            say("Предохранители не встают на место.");
+        }
+
+        save();
+        render();
+    }
+
+    function updateDarkness() {
+        document.getElementById("darkness").classList.toggle("on", !state.flags.powerOn);
+    }
+
+    function flickerLight() {
+        const overlay = document.getElementById("darkness");
+        overlay.classList.remove("on");
+        overlay.classList.add("flicker");
+
+        setTimeout(() => {
+            overlay.classList.remove("flicker");
+            updateDarkness();
+        }, 950);
+    }
+
+    let timerInterval = null;
+
+    function formatTime(ms) {
+        const total = Math.floor(ms / 1000);
+        const h = String(Math.floor(total / 3600)).padStart(2, "0");
+        const m = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
+        const s = String(total % 60).padStart(2, "0");
+        return `${h}:${m}:${s}`;
+    }
+
+    function currentElapsed() {
+        if (!state.startedAt) return state.elapsedMs || 0;
+        return (state.elapsedMs || 0) + (Date.now() - state.startedAt);
+    }
+
+    function startTimer() {
+        if (state.startedAt) return;
+        state.startedAt = Date.now();
+        save();
+        tickTimer();
+        timerInterval = setInterval(tickTimer, 1000);
+    }
+
+    function stopTimer() {
+        if (!state.startedAt) return;
+        state.elapsedMs = currentElapsed();
+        state.startedAt = null;
+        clearInterval(timerInterval);
+        timerInterval = null;
+        save();
+    }
+
+    function resetTimer() {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        state.startedAt = null;
+        state.elapsedMs = 0;
+        const el = document.getElementById("timer");
+        if (el) {
+            el.hidden = true;
+            el.textContent = "00:00:00";
+        }
+    }
+
+    function tickTimer() {
+        const el = document.getElementById("timer");
+        if (!el) return;
+        el.hidden = false;
+        el.textContent = formatTime(currentElapsed());
+    }
+
+    function resumeTimerIfNeeded() {
+        if (state.startedAt) {
+            tickTimer();
+            timerInterval = setInterval(tickTimer, 1000);
+        } else if (state.elapsedMs > 0) {
+            const el = document.getElementById("timer");
+            if (el) {
+                el.hidden = false;
+                el.textContent = formatTime(state.elapsedMs);
+            }
+        }
+    }
+
+    function loadLeaderboard() {
+        try {
+            const raw = localStorage.getItem(LEADERBOARD_KEY);
+            const arr = raw ? JSON.parse(raw) : [];
+            return Array.isArray(arr) ? arr : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function saveLeaderboard(list) {
+        localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(list));
+    }
+
+    function addLeaderboardEntry(name, ms) {
+        const list = loadLeaderboard();
+        list.push({name: String(name).slice(0, 24) || "Безымянный", ms, date: new Date().toISOString()});
+        list.sort((a, b) => a.ms - b.ms);
+        saveLeaderboard(list);
+        return list;
+    }
+
+    function autoDownloadLeaderboard() {
+        const data = JSON.stringify(loadLeaderboard(), null, 2);
+        const blob = new Blob([data], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "leaderboard.json";
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function showLeaderboard(mode, options = {}) {
+        const {finalMs = null, onRestart = null} = options;
+        let list = loadLeaderboard();
+
+        document.getElementById("modalCard").classList.remove("gm-card");
+        document.getElementById("modalTitle").textContent = "Таблица лидеров";
+
+        const body = document.getElementById("modalBody");
+        body.innerHTML = "";
+
+        const info = document.createElement("p");
+        if (mode === "finish" && finalMs !== null) {
+            const best = list.length ? list[0].ms : null;
+            info.textContent =
+                `Твоё время: ${formatTime(finalMs)}\n` +
+                (best !== null ? `Лучшее время: ${formatTime(best)}\n` : "") +
+                `Записей: ${list.length}`;
+        } else {
+            info.textContent = `Записей: ${list.length}`;
+        }
+        body.appendChild(info);
+
+
+        const wrap = document.createElement("div");
+        wrap.className = "leaderboard";
+
+        const table = document.createElement("table");
+        table.innerHTML = "<thead><tr><th>#</th><th>Имя</th><th>Время</th></tr></thead>";
+        const tbody = document.createElement("tbody");
+        table.appendChild(tbody);
+        wrap.appendChild(table);
+        body.appendChild(wrap);
+
+        function renderRows() {
+            tbody.innerHTML = "";
+            if (!list.length) {
+                const tr = document.createElement("tr");
+                const td = document.createElement("td");
+                td.colSpan = 3;
+                td.className = "empty";
+                td.textContent = "Пока никто не финишировал.";
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+                return;
+            }
+            list.forEach((entry, i) => {
+                const tr = document.createElement("tr");
+                const td1 = document.createElement("td");
+                td1.textContent = i + 1;
+                const td2 = document.createElement("td");
+                td2.textContent = entry.name;
+                const td3 = document.createElement("td");
+                td3.textContent = formatTime(entry.ms);
+                tr.append(td1, td2, td3);
+                tbody.appendChild(tr);
+            });
+        }
+
+        renderRows();
+
+        const actions = document.getElementById("modalActions");
+        actions.innerHTML = "";
+
+        if (mode === "finish") {
+            const nameInput = document.createElement("input");
+            nameInput.placeholder = "Твоё имя (Enter — сохранить)";
+            nameInput.maxLength = 24;
+            nameInput.autocomplete = "off";
+            body.insertBefore(nameInput, wrap);
+
+            const saveEntry = () => {
+                if (nameInput.disabled) return;
+                const name = nameInput.value.trim();
+                if (!name) {
+                    nameInput.focus();
+                    return;
+                }
+                addLeaderboardEntry(name, finalMs);
+                list = loadLeaderboard();
+                renderRows();
+                nameInput.disabled = true;
+                autoDownloadLeaderboard();
+                wrap.scrollTop = wrap.scrollHeight;
+            };
+
+            nameInput.addEventListener("keydown", e => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    saveEntry();
+                }
+            });
+
+            const saveBtn = document.createElement("button");
+            saveBtn.textContent = "Сохранить в таблицу";
+            saveBtn.onclick = saveEntry;
+            actions.appendChild(saveBtn);
+
+            if (onRestart) {
+                const restartBtn = document.createElement("button");
+                restartBtn.textContent = "Начать заново";
+                restartBtn.onclick = () => {
+                    closeModal();
+                    onRestart();
+                };
+                actions.appendChild(restartBtn);
+            }
+
+            const close = document.createElement("button");
+            close.textContent = "Закрыть";
+            close.onclick = closeModal;
+            actions.appendChild(close);
+
+            document.getElementById("modal").hidden = false;
+            nameInput.focus();
+            return;
+        }
+
+        const downloadBtn = document.createElement("button");
+        downloadBtn.textContent = "Скачать таблицу";
+        downloadBtn.onclick = exportLeaderboard;
+        actions.appendChild(downloadBtn);
+
+        const uploadBtn = document.createElement("button");
+        uploadBtn.textContent = "Загрузить таблицу";
+        uploadBtn.onclick = () => {
+            importLeaderboard();
+            setTimeout(() => {
+                list = loadLeaderboard();
+                renderRows();
+            }, 800);
+        };
+        actions.appendChild(uploadBtn);
+
+        const close = document.createElement("button");
+        close.textContent = "Закрыть";
+        close.onclick = closeModal;
+        actions.appendChild(close);
+
+        document.getElementById("modal").hidden = false;
+    }
+
+    function exportLeaderboard() {
+        const data = JSON.stringify(loadLeaderboard(), null, 2);
+        const blob = new Blob([data], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "leaderboard.json";
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function importLeaderboard() {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".json,application/json";
+        input.onchange = () => {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const parsed = JSON.parse(reader.result);
+                    if (!Array.isArray(parsed)) throw new Error("bad format");
+                    const clean = parsed
+                        .filter(e => e && typeof e.name === "string" && Number.isFinite(e.ms))
+                        .map(e => ({name: e.name.slice(0, 24), ms: e.ms, date: e.date || null}));
+                    clean.sort((a, b) => a.ms - b.ms);
+                    saveLeaderboard(clean);
+                    alert("Таблица загружена. Открой её заново, чтобы увидеть.");
+                } catch {
+                    alert("Не удалось прочитать файл.");
+                }
+            };
+            reader.readAsText(file);
+        };
+        input.click();
+    }
+
+    function restartGame() {
+        localStorage.removeItem(SAVE_KEY);
+        state = freshState();
+        resetTimer();
+        clearTimeout(messageTimer);
+        clearTimeout(fadeTimer);
+        document.getElementById("gameMessage").textContent = "";
+        document.getElementById("gameMessage").classList.remove("fade-out");
+        document.getElementById("modal").hidden = true;
+        document.getElementById("game").hidden = true;
+        document.getElementById("startScreen").hidden = false;
+        const sidebar = document.querySelector(".sidebar");
+        if (sidebar) sidebar.style.display = "";
+    }
+
+    function askFinalWord() {
+        inputModal("Финал", "Введи нужные два слова", "Введи слова", code => {
+            const normalized = code.trim().toLowerCase();
+            if (normalized === "пора просыпаться") {
+                stopTimer();
+                const finalMs = currentElapsed();
+
+                gm("Произнеся эти слова, ты участвуешь, будто\n" +
+                    "что-то затягивает тебя внутрь куба. Все вокруг\n" +
+                    "темнеет, и ты проваливаешься в разум твоих\n" +
+                    "копий из куба. Твоя память начинает угасать,\n" +
+                    "словно сон, и все твои воспоминания постепенно\n" +
+                    "стираются. Последнее, за что цепляется твой\n" +
+                    "разум, — это слова: Пора просыпаться.", () => {
+                    state.flags.ending = true;
+                    save();
+                    showLeaderboard("finish", {finalMs, onRestart: restartGame});
+                });
+            } else {
+                say("Слова не подействовали.");
+            }
+        });
+    }
+
+    function handleMachine() {
+        if (!state.flags.powerOn || state.flags.fuseSet !== "ACF") {
+            say("Нехватка энергии");
+            return;
+        }
+
+        if (!state.flags.disketteUsed) {
+            say("Запустить извлечение-воспоминаний.exe");
+            return;
+        }
+        if (state.flags.ending) {
+            askFinalWord();
+            return;
+        }
+        inputModal("Машина", "На экране появляется последовательность слов.", "Введи слова", code => {
+            const normalized = code.trim().toLowerCase();
+            const inputWords = normalized.split(/\s+/).filter(w => w.length > 0);
+            const targetWords = ["разум", "душа", "память", "узрите", "замок"];
+            const isValid =
+                inputWords.length === 5 &&
+                targetWords.every(w => inputWords.includes(w)) &&
+                inputWords.every(w => targetWords.includes(w));
+
+            if (!state.flags.ending) {
+                if (isValid) {
+                    state.flags.ending = true;
+                    gm("Ты повторяешь слова, и свет в кабинке\n" +
+                        "становится ярче. Двери машины\n" +
+                        "захлопываются, и ты оказываешься заперт\n" +
+                        "внутри. Кабинка начинает трястись, и ты\n" +
+                        "чувствуешь изнутри, как тебя пронзает мощная\n" +
+                        "энергия. Белая вспышка ослепляет тебя, и все\n" +
+                        "затихает. Машина и свет в ней выключаются,\n" +
+                        "но двери остаются закрытыми. У себя под\n" +
+                        "ногами ты замечаешь что-то. Это черный куб", () => {
+                        gm("Ты поднимаешь куб. Он легче, чем вы думали,\n" +
+                            "у него гладкая холодная поверхность. Когда\n" +
+                            "ты разглядываешь его, ты обнаруживаешь,\n" +
+                            "что сквозь него можно видеть, как если бы он\n" +
+                            "был из стекла. Внутри ты видишь маленькую\n" +
+                            "комнату с белой плиткой на стенах. В\n" +
+                            "комнате стоит кровать, в ней спит человек. Ты\n" +
+                            "присматриваешься и узнаешь самого себя", () => {
+                            go("black");
+                        });
+                    });
+                } else {
+                    say("Машина не реагирует.");
+                }
+            }
+        });
+    }
+
+    document.getElementById("resetBtn").onclick = () => {
+        if (!confirm("Начать игру заново? Сохранение будет удалено.")) return;
+
+        localStorage.removeItem(SAVE_KEY);
+        state = freshState();
+        resetTimer();
+
+        clearTimeout(messageTimer);
+        clearTimeout(fadeTimer);
+
+        document.getElementById("gameMessage").textContent = "";
+        document.getElementById("gameMessage").classList.remove("fade-out");
+        document.getElementById("modal").hidden = true;
+
+        document.getElementById("game").hidden = true;
+        document.getElementById("startScreen").hidden = false;
+    };
+
+    document.getElementById("modal").addEventListener("click", event => {
+        if (event.target.id === "modal") closeModal();
+    });
+    const rotateScreen = document.getElementById("rotateScreen");
+    const touchDevice = ("ontouchstart" in window) || navigator.maxTouchPoints > 0;
+
+    function updateOrientationNotice() {
+        const portrait = window.matchMedia("(orientation: portrait)").matches;
+        rotateScreen.classList.toggle("visible", touchDevice && portrait);
+    }
+
+    window.addEventListener("resize", updateOrientationNotice);
+    window.addEventListener("orientationchange", updateOrientationNotice);
+    updateOrientationNotice();
+
+    document.getElementById("playBtn").onclick = () => {
+        document.getElementById("startScreen").hidden = true;
+        document.getElementById("game").hidden = false;
+        render();
+        startTimer();
+
+        if (!state.flags.visited.bedroom) {
+            state.flags.visited.bedroom = true;
+            save();
+            gm(roomNarration.bedroom, null);
+        }
+    };
+    let markClicks = 0;
+    document.getElementById("startMark").addEventListener("click", () => {
+        markClicks++;
+        if (markClicks === 10) {
+            showLeaderboard("view");
+            markClicks = 0;
+        }
+    });
+
+    resumeTimerIfNeeded();
+</script>
+</body>
+</html>
